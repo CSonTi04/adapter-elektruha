@@ -1,9 +1,9 @@
-int DELAY_TIME = 500;
+const int DELAY_TIME = 500;
+const int GPIO4 = 4;
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(GPIO4, OUTPUT);
 }
 
 void loop() {

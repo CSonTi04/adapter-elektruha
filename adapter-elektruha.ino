@@ -8,8 +8,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(GPIO4, HIGH);
   delay(DELAY_TIME);  
-  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(GPIO4, LOW);
   delay(DELAY_TIME);  
 }

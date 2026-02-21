@@ -9,5 +9,5 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.println(touchRead(T0));
+  Serial.println(touchRead(T3));
 }

@@ -79,6 +79,7 @@ struct Emotion {
 constexpr bool ENABLE_AUDIO = true;        // <<< TOGGLE THIS
 constexpr int  AUDIO_LEDC_CH = 2;
 constexpr int  AUDIO_LEDC_RES_BITS = 8;    // 0..255 duty "volume"
+constexpr float AUDIO_VOLUME_SCALE = 0.35f; // global volume trim (0.0..1.0)
 // Note: LEDC base freq is set by ledcWriteTone().
 // ====================================================
 
@@ -111,6 +112,14 @@ uint32_t lastBleScanStartMs = 0;
 // -------------------- Touch --------------------
 int touchBaseline = 0;
 float touchFiltered = 0.0f;
+bool touchLatched = false;
+
+// Touch hysteresis:
+// - enter touch below TOUCH_ON_RATIO * baseline
+// - release touch above TOUCH_OFF_RATIO * baseline
+// Using two thresholds prevents rapid toggling when signal hovers near the edge.
+constexpr float TOUCH_ON_RATIO  = 0.85f;
+constexpr float TOUCH_OFF_RATIO = 0.90f;
 
 float clamp01(float x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
 float frand(float a, float b) { return a + (b - a) * (float)random(0, 10000) / 10000.0f; }
@@ -130,7 +139,17 @@ bool isTouched() {
   int raw = touchRead(TOUCH_GPIO);
   const float alpha = 0.15f;
   touchFiltered = (1 - alpha) * touchFiltered + alpha * raw;
-  return touchFiltered < (touchBaseline * 0.85f);
+
+  const float onThreshold = touchBaseline * TOUCH_ON_RATIO;
+  const float offThreshold = touchBaseline * TOUCH_OFF_RATIO;
+
+  if (!touchLatched) {
+    if (touchFiltered < onThreshold) touchLatched = true;
+  } else {
+    if (touchFiltered > offThreshold) touchLatched = false;
+  }
+
+  return touchLatched;
 }
 
 // -------------------- BLE (Bluedroid / core BLE) --------------------
@@ -562,8 +581,10 @@ static inline void audioTone(float hz, uint8_t duty) {
     audioSilence();
     return;
   }
+  uint8_t scaledDuty = (uint8_t)(duty * AUDIO_VOLUME_SCALE);
+  if (scaledDuty == 0 && duty > 0) scaledDuty = 1;
   ledcWriteTone(AUDIO_PIN, (uint32_t)hz);
-  ledcWrite(AUDIO_PIN, duty);
+  ledcWrite(AUDIO_PIN, scaledDuty);
 }
 
 void audioTick(uint32_t nowMs, uint8_t sRaw) {

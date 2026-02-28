@@ -1,5 +1,7 @@
 # anxius.ino
 
+![Project build photo](project.jpg)
+
 ## Overview
 
 This sketch runs an ESP32-based emotional LED sculpture built around a PCF8574 I²C GPIO expander (8 outputs) and a single capacitive touch input. It continuously maintains a small internal emotional model: **arousal**, **anxiety**, and **affection**.
@@ -16,6 +18,23 @@ The result is reactive rather than scripted: the system calms down over time, be
 - **BLE scanning** with ESP32 BLE stack (`BLEDevice`, `BLEScan`)
 - **Audio output** on `GPIO5` for LM386 input (LEDC tone generation)
 - I²C pins: `SDA=21`, `SCL=22`
+
+## Hardware Components & Datasheets
+
+### ESP32
+
+- The project uses a DOIT ESP32 DevKit board based on the ESP32-WROOM-32 module.
+- ESP32 Datasheet: https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
+
+### I2C GPIO Expander
+
+- PCF8574 / PCF8574A I2C I/O expander
+- Datasheet: https://www.nxp.com/docs/en/data-sheet/PCF8574_PCF8574A.pdf
+
+### Audio Amplifier
+
+- LM386-based audio amplifier module (5-12 V DC, adjustable gain)
+- LM386 audio amplifier datasheet: https://www.ti.com/lit/ds/symlink/lm386.pdf
 
 ## Emotional model
 

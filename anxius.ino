@@ -1,3 +1,10 @@
+enum class MoodState : uint8_t {
+  Idle,
+  Excited,
+  Anxious,
+  Friendly
+};
+
 #include <Wire.h>
 #include <PCF8574.h>
 #include <BLEDevice.h>
@@ -5,9 +12,8 @@
 #include <BLEScan.h>
 #include <math.h>
 
-// -------------------- State (placed early to avoid Arduino auto-prototype issues) --------------------
-enum class State { Idle, Excited, Anxious, Friendly };
-State chooseState(uint32_t nowMs);
+// -------------------- State --------------------
+MoodState chooseState(uint32_t nowMs);
 
 // ================= VERBOSITY CONTROL =================
 #define VERBOSE_NONE     0
@@ -41,6 +47,8 @@ constexpr bool ENABLE_PWM = false;   // <<< TOGGLE THIS
 #endif
 
 // -------------------- Pins --------------------
+constexpr int AUDIO_PIN = 5; // LM386 input (through coupling cap recommended)
+
 constexpr int SDA_PIN = 21;
 constexpr int SCL_PIN = 22;
 constexpr int TOUCH_GPIO = 4;
@@ -64,6 +72,16 @@ struct Emotion {
 } E;
 
 // -------------------- Timing --------------------
+
+// ================= AUDIO OUTPUT MODE =================
+// Uses ESP32 LEDC PWM to generate simple tones for LM386.
+// If you later move to a DAC pin (GPIO25/26), we can do smoother audio.
+constexpr bool ENABLE_AUDIO = true;        // <<< TOGGLE THIS
+constexpr int  AUDIO_LEDC_CH = 2;
+constexpr int  AUDIO_LEDC_RES_BITS = 8;    // 0..255 duty "volume"
+// Note: LEDC base freq is set by ledcWriteTone().
+// ====================================================
+
 // === Output mode ===
 // If PWM is ON: brightness is simulated via fast on/off slices.
 // If PWM is OFF: LEDs are driven as simple ON/OFF using a threshold (much clearer "some off" states).
@@ -172,11 +190,11 @@ int getBleDeviceCount(uint32_t* lastUpdateMsOut = nullptr) {
 
 // -------------------- State --------------------
 
-State chooseState(uint32_t nowMs) {
-  if (nowMs - E.lastTouchMs < 1500) return State::Friendly;
-  if (E.anxiety > 0.65f) return State::Anxious;
-  if (E.arousal > 0.55f) return State::Excited;
-  return State::Idle;
+MoodState chooseState(uint32_t nowMs) {
+  if (nowMs - E.lastTouchMs < 1500) return MoodState::Friendly;
+  if (E.anxiety > 0.65f) return MoodState::Anxious;
+  if (E.arousal > 0.55f) return MoodState::Excited;
+  return MoodState::Idle;
 }
 
 // -------------------- LED --------------------
@@ -524,6 +542,134 @@ void applyMask(uint8_t m) {
   for (int i = 0; i < 8; i++) pcfWritePin(i, (m >> i) & 1);
 }
 
+// -------------------- Audio --------------------
+
+// Very small "voice" driven by emotional state.
+// We intentionally keep it imperfect: jitter, gaps, and non-musical drifts.
+static uint32_t audioNextEventMs = 0;
+static uint32_t audioEventEndMs  = 0;
+static float    audioFreqHz      = 0.0f;
+static uint8_t  audioDuty        = 0;      // 0..255
+
+static inline void audioSilence() {
+  if (!ENABLE_AUDIO) return;
+  ledcWrite(AUDIO_PIN, 0);
+}
+
+static inline void audioTone(float hz, uint8_t duty) {
+  if (!ENABLE_AUDIO) return;
+  if (hz < 1.0f || duty == 0) {
+    audioSilence();
+    return;
+  }
+  ledcWriteTone(AUDIO_PIN, (uint32_t)hz);
+  ledcWrite(AUDIO_PIN, duty);
+}
+
+void audioTick(uint32_t nowMs, uint8_t sRaw) {
+  if (!ENABLE_AUDIO) return;
+  MoodState s = (MoodState)sRaw;
+
+  // If current event is active, keep it running (optionally drift a bit)
+  if (nowMs < audioEventEndMs) {
+    // micro drift keeps it organic
+    float drift = 1.0f + frand(-0.006f, 0.006f);
+    audioTone(audioFreqHz * drift, audioDuty);
+    return;
+  }
+
+  // If we're between events, silence until next event time
+  if (nowMs < audioNextEventMs) {
+    audioSilence();
+    return;
+  }
+
+  // Schedule a new event depending on state
+  switch (s) {
+    case MoodState::Idle: {
+      // "Breathing nerves" = quiet, low throb with long gaps
+      // Two little pulses that feel like a hesitant heartbeat.
+      float base = 120.0f + 40.0f * (1.0f - E.affection);
+      audioFreqHz = base + frand(-6.0f, 6.0f);
+      audioDuty = (uint8_t)(18 + 22 * (1.0f - E.anxiety)); // quieter when anxious
+      uint32_t onMs = (uint32_t)(55 + frand(0, 35));
+      audioEventEndMs = nowMs + onMs;
+      // next pulse after a soft gap
+      audioNextEventMs = nowMs + (uint32_t)(260 + frand(0, 380));
+      break;
+    }
+
+    case MoodState::Excited: {
+      // "Cross-talk" = faster chirps, higher pitch, boundary agitation
+      float a = clamp01f(E.arousal);
+      float crowd = clamp01f(E.lastSeenDevices / 18.0f);
+      float f = 260.0f + 520.0f * a + 220.0f * crowd;
+      audioFreqHz = f + frand(-40.0f, 60.0f);
+      audioDuty = (uint8_t)(28 + 70 * a);
+      uint32_t onMs = (uint32_t)(25 + 55 * (1.0f - a) + frand(0, 25));
+      audioEventEndMs = nowMs + onMs;
+
+      // occasional overload "flash" becomes a short burst
+      if (a > 0.75f && random(0, 1000) < (int)(15 + 40 * a)) {
+        audioFreqHz = 900.0f + 700.0f * frand(0.0f, 1.0f);
+        audioDuty = (uint8_t)(90 + 90 * frand(0.0f, 1.0f));
+        audioEventEndMs = nowMs + (uint32_t)(35 + frand(0, 45));
+        audioNextEventMs = nowMs + (uint32_t)(90 + frand(0, 120));
+      } else {
+        audioNextEventMs = nowMs + (uint32_t)(70 + 140 * (1.0f - a) + frand(0, 60));
+      }
+      break;
+    }
+
+    case MoodState::Anxious: {
+      // "Twitching" = irregular ticks + occasional sharp misfire
+      float x = clamp01f(E.anxiety);
+
+      // Most of the time: short tick
+      audioFreqHz = 420.0f + 900.0f * x + frand(-120.0f, 220.0f);
+      audioDuty = (uint8_t)(20 + 60 * x);
+      audioEventEndMs = nowMs + (uint32_t)(12 + frand(0, 35));
+
+      // Sometimes: a misfire spike
+      if (random(0, 1000) < (int)(70 + 320 * x)) {
+        audioFreqHz = 1200.0f + 1400.0f * frand(0.0f, 1.0f);
+        audioDuty = (uint8_t)(70 + 120 * x);
+        audioEventEndMs = nowMs + (uint32_t)(10 + frand(0, 25));
+      }
+
+      // rare full-body tremor = brief loud buzz
+      if (random(0, 1000) < (int)(12 + 80 * x)) {
+        audioFreqHz = 180.0f + 90.0f * frand(0.0f, 1.0f);
+        audioDuty = (uint8_t)(120 + 80 * x);
+        audioEventEndMs = nowMs + (uint32_t)(65 + frand(0, 60));
+      }
+
+      // irregular spacing
+      audioNextEventMs = nowMs + (uint32_t)(25 + 220 * (1.0f - x) + frand(0, 180));
+      break;
+    }
+
+    case MoodState::Friendly: {
+      // "Relief" = a gentle descending sigh/purr shortly after touch
+      uint32_t dt = nowMs - E.lastTouchMs;
+      float hold = clamp01f(1.0f - (float)dt / 1200.0f);
+
+      // descending frequency over time since touch
+      float startF = 520.0f + 240.0f * hold;
+      float endF   = 220.0f + 120.0f * (1.0f - hold);
+      float t = clamp01f(dt / 1600.0f);
+      audioFreqHz = (1.0f - t) * startF + t * endF + frand(-12.0f, 12.0f);
+
+      audioDuty = (uint8_t)(30 + 70 * hold);
+      audioEventEndMs = nowMs + (uint32_t)(60 + 90 * hold + frand(0, 40));
+
+      // after touch: a couple of calmer pulses then fade out
+      audioNextEventMs = nowMs + (uint32_t)(110 + 200 * (1.0f - hold) + frand(0, 120));
+      break;
+    }
+  }
+}
+
 // -------------------- Emotion Update --------------------
 
 // Periodic emotional state logging (non-spammy)
@@ -543,12 +689,12 @@ void logEmotionalState(uint32_t nowMs) {
     Serial.print(E.affection, 2);
     Serial.print(" state=");
 
-    State s = chooseState(nowMs);
+    MoodState s = chooseState(nowMs);
     switch (s) {
-      case State::Idle:     Serial.println("Idle"); break;
-      case State::Excited:  Serial.println("Excited"); break;
-      case State::Anxious:  Serial.println("Anxious"); break;
-      case State::Friendly: Serial.println("Friendly"); break;
+      case MoodState::Idle:     Serial.println("Idle"); break;
+      case MoodState::Excited:  Serial.println("Excited"); break;
+      case MoodState::Anxious:  Serial.println("Anxious"); break;
+      case MoodState::Friendly: Serial.println("Friendly"); break;
     }
   }
 #endif
@@ -563,6 +709,12 @@ void tickEmotions(float dt) {
 // -------------------- Setup --------------------
 void setup() {
   Serial.begin(115200);
+
+  // Audio (LEDC PWM)
+  if (ENABLE_AUDIO) {
+    ledcAttachChannel(AUDIO_PIN, 1000, AUDIO_LEDC_RES_BITS, AUDIO_LEDC_CH); // freq will be overridden by ledcWriteTone
+    ledcWrite(AUDIO_PIN, 0);
+  }
   Wire.begin(SDA_PIN, SCL_PIN);
   pcf.begin();
   for (int i = 0; i < 8; i++) pcf.write(i, HIGH);
@@ -639,21 +791,24 @@ void loop() {
   }
 
   // State
-  static State lastState = State::Idle;
-  State s = chooseState(nowMs);
+  static MoodState lastState = MoodState::Idle;
+  MoodState s = chooseState(nowMs);
   if (s != lastState) {
     LOG_STATE("STATE change");
     lastState = s;
   }
 
   switch (s) {
-    case State::Idle:     patternIdle(nowMs); break;
-    case State::Excited:  patternExcited(nowMs); break;
-    case State::Anxious:  patternAnxious(nowMs); break;
-    case State::Friendly: patternFriendly(nowMs); break;
+    case MoodState::Idle:     patternIdle(nowMs); break;
+    case MoodState::Excited:  patternExcited(nowMs); break;
+    case MoodState::Anxious:  patternAnxious(nowMs); break;
+    case MoodState::Friendly: patternFriendly(nowMs); break;
   }
 
-    // Emotional state logging
+  // Audio output driven by the same emotional state
+  audioTick(nowMs, (uint8_t)s);
+
+  // Emotional state logging
   logEmotionalState(nowMs);
 
   // Output

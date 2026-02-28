@@ -5,6 +5,27 @@ enum class MoodState : uint8_t {
   Friendly
 };
 
+// -----------------------------------------------------------------------------
+// anxius.ino architecture (high level)
+//
+// 1) Sense inputs:
+//    - capacitive touch (self/visitor interaction)
+//    - nearby BLE device count (environmental "crowd" signal)
+//
+// 2) Update emotional model:
+//    - arousal, anxiety, affection each evolve over time
+//
+// 3) Choose a discrete mood state from continuous values.
+//
+// 4) Render outputs from state:
+//    - LED pattern synthesis through an 8-channel energy buffer
+//    - procedural audio event scheduler with state-specific behavior
+//
+// 5) Flush outputs periodically:
+//    - LEDs through PCF8574 (binary or time-sliced PWM)
+//    - tone/duty through ESP32 LEDC
+// -----------------------------------------------------------------------------
+
 #include <Wire.h>
 #include <PCF8574.h>
 #include <BLEDevice.h>
@@ -121,9 +142,14 @@ bool touchLatched = false;
 constexpr float TOUCH_ON_RATIO  = 0.85f;
 constexpr float TOUCH_OFF_RATIO = 0.90f;
 
+// Clamp helper for emotional values and normalized ranges.
 float clamp01(float x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+
+// Uniform pseudo-random float in [a, b] used for "organic" jitter.
 float frand(float a, float b) { return a + (b - a) * (float)random(0, 10000) / 10000.0f; }
 
+// Startup calibration: estimate untouched baseline once at boot.
+// Re-run if your installation changes significantly (humidity/material/ground).
 void calibrateTouch() {
   delay(400);
   long sum = 0;
@@ -135,6 +161,9 @@ void calibrateTouch() {
   touchFiltered = touchBaseline;
 }
 
+// Returns debounced touch state using:
+// - exponential smoothing (reduces noise)
+// - hysteresis latch (reduces ON/OFF chatter near threshold)
 bool isTouched() {
   int raw = touchRead(TOUCH_GPIO);
   const float alpha = 0.15f;
@@ -155,7 +184,9 @@ bool isTouched() {
 // -------------------- BLE (Bluedroid / core BLE) --------------------
 BLEScan* pBLEScan = nullptr;
 
-// Non-blocking scanning: run the blocking scan in its own FreeRTOS task.
+// Non-blocking scanning model:
+// The BLE API scan call is blocking, so it runs in its own FreeRTOS task.
+// The main loop remains responsive for LED/audio timing.
 static volatile int g_bleCount = 0;
 static volatile uint32_t g_bleLastUpdateMs = 0;
 static portMUX_TYPE g_bleMux = portMUX_INITIALIZER_UNLOCKED;
@@ -197,7 +228,7 @@ void bleScanTask(void* pv) {
   }
 }
 
-// Read the latest scan result (non-blocking)
+// Lock-protected snapshot read of latest BLE result.
 int getBleDeviceCount(uint32_t* lastUpdateMsOut = nullptr) {
   portENTER_CRITICAL(&g_bleMux);
   int c = g_bleCount;
@@ -210,6 +241,8 @@ int getBleDeviceCount(uint32_t* lastUpdateMsOut = nullptr) {
 // -------------------- State --------------------
 
 MoodState chooseState(uint32_t nowMs) {
+  // Priority order matters:
+  // touch-driven friendliness always wins first for immediate responsiveness.
   if (nowMs - E.lastTouchMs < 1500) return MoodState::Friendly;
   if (E.anxiety > 0.65f) return MoodState::Anxious;
   if (E.arousal > 0.55f) return MoodState::Excited;
@@ -244,12 +277,15 @@ static inline void decayEnergy(uint32_t nowMs, float decayPerSec) {
   }
 }
 
+// Injects a pulse into one LED channel (with clamped accumulation).
 static inline void pulseLed(int idx, float amp) {
   if (idx < 0 || idx > 7) return;
   // additive with clamp gives a nice "spiky" biological response
   ledEnergy[idx] = clamp01f(ledEnergy[idx] + amp);
 }
 
+// Pulse plus neighbor bleed ("tail") to avoid harsh isolated blinks.
+// Tail is constrained within each hemisphere for visual readability.
 static inline void pulseWithTail(int idx, float amp, float tail) {
   pulseLed(idx, amp);
   // tail to neighbors, but keep within hemisphere boundaries for readability
@@ -262,6 +298,7 @@ static inline void pulseWithTail(int idx, float amp, float tail) {
   }
 }
 
+// Convert transient energy buffer to target brightness values.
 static inline void copyEnergyToTarget(float baseFloor = 0.0f) {
   for (int i = 0; i < 8; i++) {
     // small base floor prevents complete deadness
@@ -289,6 +326,8 @@ static uint32_t anxNextTwitchMs = 0;
 static uint32_t anxNextMisfireMs = 0;
 static uint32_t anxNextFlashMs = 0;
 
+// Adds bounded random timing variation around a base interval.
+// This prevents machine-like regularity in motion/audio behavior.
 static inline uint32_t jitterMs(uint32_t base, uint32_t jMin, uint32_t jMax) {
   int j = (int)random((long)jMin, (long)jMax + 1);
   long v = (long)base + j;
@@ -356,6 +395,8 @@ void patternIdle(uint32_t nowMs) {
   copyEnergyToTarget(0.01f);
 }
 
+// Excited state: faster bilateral activity with boundary agitation.
+// Intensity and speed scale with arousal and BLE crowd level.
 void patternExcited(uint32_t nowMs) {
   // Overstimulated cross-talk: opposing chases with occasional overload.
   float a = clamp01f(E.arousal);
@@ -417,6 +458,8 @@ void patternExcited(uint32_t nowMs) {
   copyEnergyToTarget(0.015f);
 }
 
+// Anxious state: irregular, less coherent activity.
+// Group A dominates while Group B receives occasional misfires.
 void patternAnxious(uint32_t nowMs) {
   // Twitching: no smooth chase; mostly random flicker in A, occasional misfire in B.
   float x = clamp01f(E.anxiety);
@@ -460,6 +503,7 @@ void patternAnxious(uint32_t nowMs) {
   copyEnergyToTarget(0.00f);
 }
 
+// Friendly state: post-touch restorative sequence with phased choreography.
 void patternFriendly(uint32_t nowMs) {
   // Wave of relief: fill A 0->3, then B 4->7, then alternating pairs, then brief glow.
   decayEnergy(nowMs, 0.55f);
@@ -547,6 +591,7 @@ uint8_t computeMask() {
   return mask;
 }
 
+// Binary output mask for crisp ON/OFF behavior (no PWM slicing).
 uint8_t computeMaskBinary() {
   // Simple ON/OFF mask (ignores pwmPhase). Great for readability.
   uint8_t mask = 0;
@@ -557,6 +602,7 @@ uint8_t computeMaskBinary() {
   return mask;
 }
 
+// Writes all 8 PCF8574 outputs from packed bit mask.
 void applyMask(uint8_t m) {
   for (int i = 0; i < 8; i++) pcfWritePin(i, (m >> i) & 1);
 }
@@ -581,6 +627,7 @@ static inline void audioTone(float hz, uint8_t duty) {
     audioSilence();
     return;
   }
+  // Global volume trim lets you tame overall loudness without retuning per-state curves.
   uint8_t scaledDuty = (uint8_t)(duty * AUDIO_VOLUME_SCALE);
   if (scaledDuty == 0 && duty > 0) scaledDuty = 1;
   ledcWriteTone(AUDIO_PIN, (uint32_t)hz);
@@ -591,7 +638,7 @@ void audioTick(uint32_t nowMs, uint8_t sRaw) {
   if (!ENABLE_AUDIO) return;
   MoodState s = (MoodState)sRaw;
 
-  // If current event is active, keep it running (optionally drift a bit)
+  // Phase A: sustain active event (with micro drift for life-like imperfection)
   if (nowMs < audioEventEndMs) {
     // micro drift keeps it organic
     float drift = 1.0f + frand(-0.006f, 0.006f);
@@ -599,13 +646,13 @@ void audioTick(uint32_t nowMs, uint8_t sRaw) {
     return;
   }
 
-  // If we're between events, silence until next event time
+  // Phase B: inter-event silence
   if (nowMs < audioNextEventMs) {
     audioSilence();
     return;
   }
 
-  // Schedule a new event depending on state
+  // Phase C: synthesize next event from current mood
   switch (s) {
     case MoodState::Idle: {
       // "Breathing nerves" = quiet, low throb with long gaps
@@ -722,6 +769,7 @@ void logEmotionalState(uint32_t nowMs) {
 }
 
 void tickEmotions(float dt) {
+  // Slow baseline drift back toward calm, with affection damping anxiety.
   E.arousal   = clamp01(E.arousal - 0.06f * dt);
   E.affection = clamp01(E.affection - 0.02f * dt);
   E.anxiety   = clamp01(E.anxiety + 0.02f * dt - 0.03f * E.affection * dt);
@@ -740,6 +788,7 @@ void setup() {
   pcf.begin();
   for (int i = 0; i < 8; i++) pcf.write(i, HIGH);
 
+  // Seed all stochastic pattern/audio behavior from hardware RNG.
   randomSeed(esp_random());
   calibrateTouch();
 
@@ -770,10 +819,11 @@ void setup() {
 
 // -------------------- Loop --------------------
 void loop() {
+  // Keep this loop non-blocking. All timing uses millis()/micros() windows.
   uint32_t nowMs = millis();
   uint32_t nowUs = micros();
 
-  // Touch
+  // Touch edge detection (rising edge = first touch contact)
   static bool lastTouch = false;
   bool t = isTouched();
   if (t && !lastTouch) {
@@ -785,7 +835,7 @@ void loop() {
   }
   lastTouch = t;
 
-  // Emotions
+  // Periodic continuous-state update
   if (nowMs - lastEmotionTickMs >= EMOTION_TICK_MS) {
     float dt = (nowMs - lastEmotionTickMs) / 1000.0f;
     lastEmotionTickMs = nowMs;
@@ -811,7 +861,7 @@ void loop() {
     }
   }
 
-  // State
+  // Resolve discrete mood from current emotional values
   static MoodState lastState = MoodState::Idle;
   MoodState s = chooseState(nowMs);
   if (s != lastState) {
@@ -832,7 +882,8 @@ void loop() {
   // Emotional state logging
   logEmotionalState(nowMs);
 
-  // Output
+  // Output flush stage: choose visual transport mode only.
+  // Pattern synthesis above is shared by both modes.
   if (ENABLE_PWM) {
     // PWM slice
     if (nowUs - lastPwmSliceUs >= PWM_SLICE_US) {

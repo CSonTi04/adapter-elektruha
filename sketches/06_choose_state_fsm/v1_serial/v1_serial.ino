@@ -22,6 +22,20 @@ constexpr uint32_t PRINT_MS  = 700;
 constexpr float FRIENDLY_WINDOW_MS = 1500; // ms after touch to stay Friendly
 // -----------------------------------------------------------------------------
 
+// ---- LEARN: enum class (named set of choices) --------------------------------
+// An "enum" (short for "enumeration") is a type that can only hold one of a
+// fixed list of named values.
+//
+// Instead of storing 0 for Idle, 1 for Excited, 2 for Anxious, 3 for Friendly
+// (which is easy to get wrong), we give each state a descriptive name.
+//
+// "enum class MoodState" means the names belong to MoodState — you must write
+// MoodState::Idle rather than just Idle.  This avoids name clashes if another
+// enum in your sketch happens to use the same word.
+//
+// ": uint8_t" means each value is stored as a single byte (0–255).
+// Four states fit easily; using uint8_t saves a tiny bit of memory.
+// -----------------------------------------------------------------------------
 enum class MoodState : uint8_t { Idle, Excited, Anxious, Friendly };
 
 float    arousal   = 0.0f;
@@ -42,7 +56,37 @@ MoodState chooseState(uint32_t now) {
   return MoodState::Idle;
 }
 
+// ---- LEARN: const char* (text / string) -------------------------------------
+// "const char*" is a pointer to a read-only sequence of characters.
+// In plain English: it is a text string.
+//
+// "const" means we won't modify the text.
+// "char" is the character type (one letter/symbol).
+// "*" (the asterisk) means it is a POINTER — the variable holds the memory
+//     address WHERE the first character lives, not the character itself.
+//
+// For now, think of "const char*" simply as "a text value."
+// You don't need to understand pointers to use it for printing.
+//
+// The function returns one of the four string literals "Idle", "Excited", etc.
+// depending on which MoodState is passed in.
+// -----------------------------------------------------------------------------
 const char* stateName(MoodState s) {
+  // ---- LEARN: switch / case ------------------------------------------------
+  // A "switch" statement is a cleaner way to write a chain of if/else when
+  // you are comparing ONE variable against SEVERAL specific values.
+  //
+  // Format:
+  //   switch (variable) {
+  //     case VALUE_A:  do_something; break;
+  //     case VALUE_B:  do_something; break;
+  //     default:       do_something; break;   // runs if no case matched
+  //   }
+  //
+  // "break" is CRITICAL — without it the code "falls through" into the next
+  // case and keeps running.  Always add break at the end of each case
+  // unless you specifically want fall-through behaviour.
+  // -------------------------------------------------------------------------
   switch (s) {
     case MoodState::Idle:     return "Idle";
     case MoodState::Excited:  return "Excited";
@@ -93,6 +137,12 @@ void loop() {
   }
 
   MoodState s = chooseState(now);
+  // ---- LEARN: Comparing enum values ----------------------------------------
+  // "s != lastState" checks if the current state is different from the last
+  // one we remember.  "!=" means "not equal to."
+  // If it is different we print the new state name and update lastState.
+  // This way we only print when a CHANGE happens, not every loop iteration.
+  // --------------------------------------------------------------------------
   if (s != lastState) {
     lastState = s;
     Serial.print("STATE -> "); Serial.println(stateName(s));

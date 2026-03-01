@@ -5,6 +5,45 @@ breaks down the main [`anxius.ino`](../anxius.ino) project into beginner-friendl
 
 ---
 
+## 🆕 Never programmed before?  Start here!
+
+**Open sketch `00_language_concepts/v1_reference/v1_reference.ino` first.**
+
+It is a guided, runnable tour of every programming concept used in this
+curriculum — variables, loops, functions, structs, enums, and more — all
+explained in plain English with no assumed background.
+
+Each v1 sketch in the curriculum also contains `// LEARN:` comment blocks
+that explain new language features exactly where they first appear in real
+project code.
+
+### Plain-English mini-glossary
+
+| Term | What it means in plain English |
+|------|-------------------------------|
+| **Variable** | A named box that holds a value you can change later: `int score = 0;` |
+| **Constant** | A named box whose value is locked forever: `constexpr int PIN = 2;` |
+| **Type** | The kind of value a variable holds. `int` = whole number, `float` = decimal, `bool` = true/false, `char` = single letter |
+| **Function** | A named block of instructions you can run (call) from anywhere in your code |
+| **`setup()`** | Runs once when the board powers on — use it for one-time initialisation |
+| **`loop()`** | Runs over and over forever — this is where your main logic lives |
+| **`if` statement** | Runs a block of code only when a condition is true |
+| **`for` loop** | Repeats a block of code a fixed number of times, with a counter |
+| **`while` loop** | Repeats a block of code as long as a condition stays true |
+| **`return`** | Exits a function, optionally handing a value back to the caller |
+| **`struct`** | A bundle of related variables grouped under one name (like a form with fields) |
+| **`enum class`** | A type that can only hold one of a named list of choices (e.g. Idle/Excited/Anxious) |
+| **`#define`** | Tells the compiler to replace a name with a value before compiling (text substitution) |
+| **`#include`** | Imports a library of pre-written functions into your sketch |
+| **`millis()`** | Returns milliseconds since power-on — the foundation of non-blocking timing |
+| **`Serial.println()`** | Prints a line of text to the Serial Monitor in the Arduino IDE |
+| **`%` (modulo)** | The remainder after division: `7 % 3 = 1`, `10 % 5 = 0` |
+| **`?:` (ternary)** | Compact if/else in one expression: `condition ? if_true : if_false` |
+| **`&&` / `\|\|` / `!`** | Logical AND / OR / NOT — combining or flipping conditions |
+| **`==` vs `=`** | `==` compares two values (is equal?); `=` stores a value (assign) |
+
+---
+
 ## Why separate folders?
 
 Arduino compiles **all `.ino` files in the same folder** together as one
@@ -13,6 +52,9 @@ identically to the `.ino` file) so they compile independently.
 
 ```
 sketches/
+  00_language_concepts/
+    v1_reference/
+      v1_reference.ino     ← start here if you're new to coding
   01_heartbeat_millis/
     v1_serial/
       v1_serial.ino        ← opens with Arduino IDE / arduino-cli
@@ -55,9 +97,29 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 
 ## Curriculum overview
 
+### 00 · Language concepts  ← **Start here if you're new to coding**
+
+A complete, runnable language tour.  Open it, upload it, and read the comments
+alongside the Serial Monitor output.
+
+- `v1_reference` – covers comments, variables, types, constants, operators,
+  if/else, for loops, while loops, functions, arrays, ternary operator,
+  structs, enums, #include, and the setup()/loop() Arduino model.
+
+**Wiring:** none.
+
+---
+
 ### 01 · Heartbeat with millis()
 
 **Concept:** Non-blocking timing — the most important ESP32 habit.
+
+**New language features introduced (see `// LEARN:` comments in v1):**
+- Constants (`constexpr`) and integer types (`uint32_t`)
+- Variables and assignment (`=` vs `==`)
+- `setup()` and `loop()` — the Arduino two-function model
+- Calling a function that returns a value (`millis()`)
+- `if`-statement and comparison operators (`>=`)
 
 - `v1_serial` – prints "BEAT" every 500 ms, no hardware.
 - `v2_builtin_led` – blinks the built-in LED (GPIO2) with millis().
@@ -71,6 +133,11 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 
 **Concept:** Compile-time logging levels (`VERBOSE_LEVEL`) used in anxius.ino.
 
+**New language features introduced (see `// LEARN:` comments in v1):**
+- `#define` — preprocessor text substitution
+- `#if / #else / #endif` — compile-time conditionals
+- Early `return` from `loop()`
+
 - `v1_serial` – shows all four levels in Serial; change `VERBOSE_LEVEL` and re-upload.
 - `v2_builtin_led` – LED blink speed reflects the active verbosity level.
 - `v3_full_pre_i2c` – adds a `MoodState` enum and state-transition logging.
@@ -82,6 +149,14 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 ### 03 · Touch smoothing
 
 **Concept:** Capacitive touch with exponential smoothing and hysteresis.
+
+**New language features introduced (see `// LEARN:` comments in v1):**
+- `float` — decimal numbers and the `f` suffix
+- `bool` — true/false flag values
+- Type cast `(float)x`
+- Functions with parameters and a return value
+- `%` modulo operator
+- Ternary `? :` operator
 
 - `v1_simulated` – synthetic touch signal, shows algorithm without hardware.
 - `v2_touch_led` – real GPIO4 touch + built-in LED lights when touched.
@@ -101,6 +176,12 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 ### 04A · I²C scanner
 
 **Concept:** Scanning the I²C bus before driving any devices.
+
+**New language features introduced (see `// LEARN:` comments in v2):**
+- `#include` — importing a library
+- `int` type and signed vs unsigned integers
+- `for` loop with `uint8_t` counter
+- Hexadecimal literals (`0x08`, `0x77`)
 
 - `v1_explained` – no hardware; prints a full protocol explanation in Serial.
 - `v2_scanner` – real scanner; reports all addresses found on SDA=21/SCL=22.
@@ -139,6 +220,13 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 
 **Concept:** The continuous emotional model (arousal / affection / anxiety).
 
+**New language features introduced (see `// LEARN:` comments in v1):**
+- Inline (one-liner) function definition
+- Compound assignment (update variable in-place)
+- Delta-time (`dt`) for frame-rate-independent updates
+- `while` loop and `Serial.available()`
+- Chained assignment (`a = b = c = 0`)
+
 - `v1_simulated` – Serial commands 't', 'b', 'r' to inject events.
 - `v2_touch_based` – real GPIO4 touch drives affection; decays naturally.
 - `v3_full_pre_i2c` – full Emotion struct + fake BLE events + bar graphs.
@@ -150,6 +238,12 @@ arduino-cli upload  -p COM5 --fqbn esp32:esp32:esp32 sketches/01_heartbeat_milli
 ### 06 · Choose-state FSM
 
 **Concept:** Priority-based finite state machine selecting among four moods.
+
+**New language features introduced (see `// LEARN:` comments in v1):**
+- `enum class` — named set of choices
+- `const char*` — text / string return type
+- `switch / case` — multi-way branching
+- Comparing enum values with `!=`
 
 - `v1_serial` – Serial commands drive state changes; watch transitions.
 - `v2_touch_led` – real touch + distinct LED blink patterns per state.

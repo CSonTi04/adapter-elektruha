@@ -13,9 +13,26 @@
 //   Connect your PCF8574 (or any I2C device) to the same bus.
 // =============================================================================
 
+// ---- LEARN: #include (importing a library) ----------------------------------
+// "#include <Wire.h>" makes the Wire library available in this sketch.
+// Wire is the Arduino library for I2C communication.
+//
+// A library is a collection of pre-written functions someone else has already
+// tested and packaged.  Using "#include" is like saying "I want to use the
+// tools from this toolbox."
+//
+// The angle brackets < > mean look in the standard system library path.
+// Double quotes "MyFile.h" would mean look in the same folder as this sketch.
+// -----------------------------------------------------------------------------
 #include <Wire.h>
 
 // ---- Tuning knobs -----------------------------------------------------------
+// ---- LEARN: int (whole-number type) ----------------------------------------
+// "int" is a whole number that can be positive or negative.
+// Here we use it to store GPIO pin numbers (21 and 22).
+// Pin numbers are always positive, but "int" is fine for small values.
+// "constexpr int" makes them compile-time constants that can't be changed.
+// -----------------------------------------------------------------------------
 constexpr int SDA_PIN = 21;
 constexpr int SCL_PIN = 22;
 constexpr uint32_t SCAN_EVERY_MS = 5000;  // re-scan interval
@@ -27,6 +44,23 @@ void scanI2C() {
   Serial.println("--- I2C scan ---");
   int found = 0;
 
+  // ---- LEARN: for loop -------------------------------------------------------
+  // A "for" loop repeats a block of code, updating a counter each time.
+  //
+  // FORMAT: for (STARTING_STATE; KEEP_GOING_WHILE; UPDATE_EACH_TIME) { }
+  //
+  // Here:
+  //   uint8_t addr = 0x08   → start at address 8 (skip reserved 0x00–0x07)
+  //   addr <= 0x77          → keep going while addr is ≤ 119 (0x77 in hex)
+  //   addr++                → add 1 to addr after each loop body runs
+  //
+  // "uint8_t" is an unsigned 8-bit integer: a whole number from 0 to 255.
+  // I2C addresses are 7 bits (0–127), so uint8_t is a perfect fit.
+  //
+  // "0x08" is the number 8 written in HEXADECIMAL (base-16).  Hex is common
+  // in hardware programming because each hex digit maps to exactly 4 binary
+  // bits.  0x20 = 32 decimal, 0x77 = 119 decimal.
+  // ---------------------------------------------------------------------------
   for (uint8_t addr = 0x08; addr <= 0x77; addr++) {
     Wire.beginTransmission(addr);
     uint8_t err = Wire.endTransmission();

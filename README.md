@@ -280,6 +280,21 @@ Bundled CLI variant:
 & "C:\Program Files\arduino-ide\resources\app\lib\backend\resources\arduino-cli.exe" upload -p COM5 --fqbn esp32:esp32:esp32 .
 ```
 
+## Safety / Disclaimer
+
+> ⚠️ This project is for **educational and experimental use only**, provided **"AS IS"** with no warranty or liability.
+
+Key points before you wire anything up:
+
+- **ESP32 GPIOs are 3.3 V** — do not connect a 5 V I2C bus directly to the ESP32.
+- Always use **pull-up resistors** (4.7 kΩ) on SDA and SCL.
+- Verify **VCC levels and logic compatibility** for every module.
+- Do **not** drive motors, relays, or other loads directly from GPIO/PCF pins — use proper drivers and flyback diodes.
+
+See **[DISCLAIMER.md](DISCLAIMER.md)** for the full safety guide and liability statement.
+
+---
+
 ## Notes
 
 - This workspace also includes `adapter-elektruha.ino`. Arduino compiles all `.ino` files in the sketch folder, so ensure there is only one active `setup()`/`loop()` pair when building.

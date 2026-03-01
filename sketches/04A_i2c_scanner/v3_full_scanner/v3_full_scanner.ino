@@ -13,6 +13,13 @@
 //   SCL → GPIO22  (with 4.7 kΩ pull-up to 3.3 V)
 //   PCF8574 VCC → 3.3 V or 5 V (check your module)
 //   PCF8574 A0/A1/A2 → GND (default address 0x20)
+//
+// SAFETY NOTE:
+//   ESP32 GPIOs are 3.3 V only – do NOT connect a 5 V I2C bus directly.
+//   Always use pull-up resistors (4.7 kΩ) on SDA and SCL.
+//   Verify VCC/logic levels before powering up.
+//   This sketch is for educational/experimental use, provided "AS IS"
+//   with no warranty.  See DISCLAIMER.md in the project root for details.
 // =============================================================================
 
 #include <Wire.h>

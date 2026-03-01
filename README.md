@@ -2,6 +2,16 @@
 
 ![Project build photo](project.jpg)
 
+## Tutorial sketch curriculum
+
+A beginner-friendly step-by-step curriculum that breaks down this project into
+13 progressive sketch groups is available in the [`sketches/`](sketches/) folder.
+Each sketch comes in three variants (Serial-only, minimal hardware, full build).
+
+See **[sketches/README.md](sketches/README.md)** for the full guide.
+
+---
+
 ## Overview
 
 This sketch runs an ESP32-based emotional LED sculpture built around a PCF8574 I²C GPIO expander (8 outputs) and a single capacitive touch input. It continuously maintains a small internal emotional model: **arousal**, **anxiety**, and **affection**.

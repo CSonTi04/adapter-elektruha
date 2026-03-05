@@ -1,0 +1,3 @@
+# doctest single-header is downloaded by CI and local test instructions;
+# do not commit it to the repository.
+tests/doctest.h

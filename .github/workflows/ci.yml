@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: host-side C++ unit tests (no hardware required)
+  # ---------------------------------------------------------------------------
+  unit-tests:
+    name: Unit tests (host C++)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download doctest single-header
+        run: |
+          curl -sSfL \
+            https://github.com/doctest/doctest/releases/download/v2.4.11/doctest.h \
+            -o tests/doctest.h
+
+      - name: Compile tests
+        run: g++ -std=c++17 -Wall -Wextra -I. -o /tmp/test_runner tests/test_logic.cpp
+
+      - name: Run tests
+        run: /tmp/test_runner
+
+  # ---------------------------------------------------------------------------
+  # Job 2: compile anxius.ino for ESP32 with Arduino CLI
+  # ---------------------------------------------------------------------------
+  arduino-compile:
+    name: Compile anxius.ino (ESP32)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Cache Arduino data directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.arduino15
+          key: arduino-esp32-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: |
+            arduino-esp32-${{ runner.os }}-
+
+      - name: Add ESP32 board manager URL
+        run: |
+          arduino-cli config add board_manager.additional_urls \
+            https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+      - name: Update core index and install ESP32 core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: Install required libraries
+        run: arduino-cli lib install "PCF8574"
+
+      - name: Compile sketch
+        run: |
+          # Arduino requires the sketch directory to be named after the sketch.
+          # Copy anxius.ino to a dedicated directory so the other .ino in the
+          # repo root does not create a duplicate setup()/loop() conflict.
+          mkdir -p /tmp/anxius
+          cp anxius.ino /tmp/anxius/anxius.ino
+          arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxius

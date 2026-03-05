@@ -280,6 +280,52 @@ Bundled CLI variant:
 & "C:\Program Files\arduino-ide\resources\app\lib\backend\resources\arduino-cli.exe" upload -p COM5 --fqbn esp32:esp32:esp32 .
 ```
 
+## CI / Testing
+
+The repository ships with a two-job GitHub Actions workflow
+(`.github/workflows/ci.yml`) that runs on every push and pull request.
+
+| Job | What it does |
+|-----|-------------|
+| **Unit tests** | Compiles and runs `tests/test_logic.cpp` with `g++` on `ubuntu-latest` — no hardware needed. |
+| **Arduino compile** | Installs Arduino CLI + ESP32 core + PCF8574 library, then compiles `anxius.ino` for `esp32:esp32:esp32`. |
+
+The pure-logic functions (`clamp01`, `chooseState`, `computeMaskBinary`) are
+re-exposed in `src/logic.h` — a standalone, Arduino-free C++ header — so they
+can be tested on any host machine.
+
+### Run unit tests locally
+
+```bash
+# Download the doctest single-header testing framework (one-time)
+curl -sSfL \
+  https://github.com/doctest/doctest/releases/download/v2.4.11/doctest.h \
+  -o tests/doctest.h
+
+# Compile and run
+g++ -std=c++17 -Wall -I. -o /tmp/test_runner tests/test_logic.cpp
+/tmp/test_runner
+```
+
+### Compile with Arduino CLI locally
+
+```bash
+# Add ESP32 board manager URL (one-time)
+arduino-cli config add board_manager.additional_urls \
+  https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+# Install ESP32 core and required library (one-time)
+arduino-cli core update-index
+arduino-cli core install esp32:esp32
+arduino-cli lib install "PCF8574"
+
+# Compile (copy to a named sketch folder to avoid multi-setup conflict)
+mkdir -p /tmp/anxius && cp anxius.ino /tmp/anxius/anxius.ino
+arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxius
+```
+
+---
+
 ## Safety / Disclaimer
 
 > ⚠️ This project is for **educational and experimental use only**, provided **"AS IS"** with no warranty or liability.

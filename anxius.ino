@@ -1,10 +1,3 @@
-enum class MoodState : uint8_t {
-  Idle,
-  Excited,
-  Anxious,
-  Friendly
-};
-
 // -----------------------------------------------------------------------------
 // anxius.ino architecture (high level)
 //
@@ -26,15 +19,13 @@ enum class MoodState : uint8_t {
 //    - tone/duty through ESP32 LEDC
 // -----------------------------------------------------------------------------
 
+#include "src/logic.h"
 #include <Wire.h>
 #include <PCF8574.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
 #include <math.h>
-
-// -------------------- State --------------------
-MoodState chooseState(uint32_t nowMs);
 
 // ================= VERBOSITY CONTROL =================
 #define VERBOSE_NONE     0
@@ -83,14 +74,7 @@ static inline void pcfWritePin(uint8_t pin, bool on) {
 }
 
 // -------------------- Emotional Model --------------------
-struct Emotion {
-  float arousal   = 0.0f;
-  float anxiety   = 0.0f;
-  float affection = 0.0f;
-
-  uint32_t lastTouchMs = 0;
-  int lastSeenDevices = 0;
-} E;
+Emotion E;
 
 // -------------------- Timing --------------------
 
@@ -141,9 +125,6 @@ bool touchLatched = false;
 // Using two thresholds prevents rapid toggling when signal hovers near the edge.
 constexpr float TOUCH_ON_RATIO  = 0.85f;
 constexpr float TOUCH_OFF_RATIO = 0.90f;
-
-// Clamp helper for emotional values and normalized ranges.
-float clamp01(float x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
 
 // Uniform pseudo-random float in [a, b] used for "organic" jitter.
 float frand(float a, float b) { return a + (b - a) * (float)random(0, 10000) / 10000.0f; }
@@ -236,17 +217,6 @@ int getBleDeviceCount(uint32_t* lastUpdateMsOut = nullptr) {
   portEXIT_CRITICAL(&g_bleMux);
   if (lastUpdateMsOut) *lastUpdateMsOut = t;
   return c;
-}
-
-// -------------------- State --------------------
-
-MoodState chooseState(uint32_t nowMs) {
-  // Priority order matters:
-  // touch-driven friendliness always wins first for immediate responsiveness.
-  if (nowMs - E.lastTouchMs < 1500) return MoodState::Friendly;
-  if (E.anxiety > 0.65f) return MoodState::Anxious;
-  if (E.arousal > 0.55f) return MoodState::Excited;
-  return MoodState::Idle;
 }
 
 // -------------------- LED --------------------
@@ -592,15 +562,7 @@ uint8_t computeMask() {
 }
 
 // Binary output mask for crisp ON/OFF behavior (no PWM slicing).
-uint8_t computeMaskBinary() {
-  // Simple ON/OFF mask (ignores pwmPhase). Great for readability.
-  uint8_t mask = 0;
-  for (int i = 0; i < 8; i++) {
-    float b = ledTarget[i] * ledTarget[i]; // keep same shaping
-    if (b >= BINARY_THRESHOLD) mask |= (1 << i);
-  }
-  return mask;
-}
+// Delegates to the shared computeMaskBinary() from src/logic.h.
 
 // Writes all 8 PCF8574 outputs from packed bit mask.
 void applyMask(uint8_t m) {
@@ -757,7 +719,7 @@ void logEmotionalState(uint32_t nowMs) {
     Serial.print(E.affection, 2);
     Serial.print(" state=");
 
-    MoodState s = chooseState(nowMs);
+    MoodState s = chooseState(E, nowMs);
     switch (s) {
       case MoodState::Idle:     Serial.println("Idle"); break;
       case MoodState::Excited:  Serial.println("Excited"); break;
@@ -863,7 +825,7 @@ void loop() {
 
   // Resolve discrete mood from current emotional values
   static MoodState lastState = MoodState::Idle;
-  MoodState s = chooseState(nowMs);
+  MoodState s = chooseState(E, nowMs);
   if (s != lastState) {
     LOG_STATE("STATE change");
     lastState = s;
@@ -895,7 +857,7 @@ void loop() {
     // Binary mode (crisper states, less "always on")
     if (nowMs - lastBinaryWriteMs >= BINARY_WRITE_EVERY_MS) {
       lastBinaryWriteMs = nowMs;
-      applyMask(computeMaskBinary());
+      applyMask(computeMaskBinary(ledTarget, BINARY_THRESHOLD));
     }
   }
 }

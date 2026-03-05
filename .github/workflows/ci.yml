@@ -67,8 +67,9 @@ jobs:
       - name: Compile sketch
         run: |
           # Arduino requires the sketch directory to be named after the sketch.
-          # Copy anxius.ino to a dedicated directory so the other .ino in the
+          # Copy anxius.ino and its src/ dependency so the other .ino in the
           # repo root does not create a duplicate setup()/loop() conflict.
-          mkdir -p /tmp/anxius
+          mkdir -p /tmp/anxius/src
           cp anxius.ino /tmp/anxius/anxius.ino
+          cp src/logic.h /tmp/anxius/src/logic.h
           arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxius

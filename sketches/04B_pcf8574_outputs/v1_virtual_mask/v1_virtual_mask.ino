@@ -34,7 +34,7 @@ void printMask(uint8_t mask) {
   Serial.println(")");
 }
 
-// Helper matching anxius.ino: on -> LOW (active-low), off -> HIGH
+// Helper matching anxious.ino: on -> LOW (active-low), off -> HIGH
 // Returns the pin-level that the PCF8574 would receive.
 // (In real code we pass this to pcf.write(pin, level))
 bool pcfPinLevel(bool on) {

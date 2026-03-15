@@ -1,9 +1,9 @@
 // =============================================================================
 // 09_audio_events – Variant 1: Serial print scheduler (no hardware)
 // =============================================================================
-// Concept: The audio event scheduler from anxius.ino without any hardware.
+// Concept: The audio event scheduler from anxious.ino without any hardware.
 //
-// anxius.ino generates sound as *events*: short tone bursts with gaps,
+// anxious.ino generates sound as *events*: short tone bursts with gaps,
 // not a continuous wave.  Each state has its own event profile.
 // The scheduler has three phases:
 //   Phase A: sustain active event (with tiny drift for organic feel)

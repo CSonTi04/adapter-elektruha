@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// anxius.ino architecture (high level)
+// anxious.ino architecture (high level)
 //
 // 1) Sense inputs:
 //    - capacitive touch (self/visitor interaction)

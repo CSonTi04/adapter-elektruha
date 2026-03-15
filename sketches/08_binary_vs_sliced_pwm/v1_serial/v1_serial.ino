@@ -3,7 +3,7 @@
 // =============================================================================
 // Concept: Binary ON/OFF vs time-sliced PWM for LED brightness.
 //
-// anxius.ino offers two output modes:
+// anxious.ino offers two output modes:
 //   ENABLE_PWM = false → computeMaskBinary()  – crisp ON/OFF states
 //   ENABLE_PWM = true  → computeMask()        – simulated brightness via
 //                         rapid on/off time slices

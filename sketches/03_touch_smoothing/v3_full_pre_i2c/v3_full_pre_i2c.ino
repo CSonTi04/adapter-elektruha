@@ -2,11 +2,11 @@
 // 03_touch_smoothing – Variant 3: Full pre-I2C touch
 // =============================================================================
 // Concept: Touch smoothing in the full project context.
-// Mirrors the touch sensing from anxius.ino exactly, including the rising-edge
+// Mirrors the touch sensing from anxious.ino exactly, including the rising-edge
 // detection used to trigger emotional events.  No I2C / PCF8574 yet.
 //
 // IMPORTANT – Touch-capable pins on ESP32:
-//   GPIO4 (T0) is used here to match anxius.ino.  Before changing the pin,
+//   GPIO4 (T0) is used here to match anxious.ino.  Before changing the pin,
 //   consult the ESP32 Technical Reference Manual for the full list of
 //   touch-capable GPIOs on your specific module.
 //

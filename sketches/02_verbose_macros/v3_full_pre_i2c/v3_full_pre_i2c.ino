@@ -3,7 +3,7 @@
 // =============================================================================
 // Concept: VERBOSE_LEVEL macros in the context of the full build.
 // Adds an extra state-machine enum (MoodState) and logs its transitions,
-// mirroring what anxius.ino does.  I2C / PCF8574 not yet introduced.
+// mirroring what anxious.ino does.  I2C / PCF8574 not yet introduced.
 //
 // Wiring: just the ESP32 board – built-in LED on GPIO2.
 // =============================================================================
@@ -39,7 +39,7 @@ constexpr int     LED_PIN   = 2;
 constexpr uint32_t TICK_MS  = 1500;  // emotion log interval
 // -----------------------------------------------------------------------------
 
-// Mood state enum – mirrors anxius.ino
+// Mood state enum – mirrors anxious.ino
 enum class MoodState : uint8_t { Idle, Excited, Anxious, Friendly };
 
 // Minimal fake emotion values used to pick a state

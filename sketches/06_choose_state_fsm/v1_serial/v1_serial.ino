@@ -3,7 +3,7 @@
 // =============================================================================
 // Concept: Priority-based FSM for mood state selection.
 //
-// anxius.ino uses a simple priority check (not a table or transition graph)
+// anxious.ino uses a simple priority check (not a table or transition graph)
 // to select one of four states from continuous emotion values:
 //   1) Friendly  – recent touch (highest priority)
 //   2) Anxious   – high anxiety

@@ -1,14 +1,14 @@
 // =============================================================================
 // 11_anxius_lite – Variant 3: Full binary integrator (PCF8574 + BLE + audio)
 // =============================================================================
-// Concept: Complete anxius.ino-lite with all subsystems active.
+// Concept: Complete anxious.ino-lite with all subsystems active.
 // Uses:
 //   - Capacitive touch (GPIO4)
 //   - PCF8574 for 8 LED outputs (binary mode, active-low)
 //   - BLE scan task (FreeRTOS, non-blocking)
 //   - LEDC audio on GPIO5
 //
-// This is the closest single-sketch equivalent to anxius.ino before the
+// This is the closest single-sketch equivalent to anxious.ino before the
 // full LED pattern engine from sketch 12.
 //
 // IMPORTANT – Touch-capable pins on ESP32:

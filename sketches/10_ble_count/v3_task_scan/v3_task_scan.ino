@@ -3,7 +3,7 @@
 // =============================================================================
 // Concept: BLE scan running in a FreeRTOS task so loop() stays responsive.
 //
-// This is the exact pattern used in anxius.ino:
+// This is the exact pattern used in anxious.ino:
 //   - bleScanTask() runs on core 0 (pinned).
 //   - It sleeps, scans (blocking inside the task only), then updates shared
 //     globals protected by a critical section (portMUX).

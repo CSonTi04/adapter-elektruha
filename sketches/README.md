@@ -1,7 +1,7 @@
 # Tutorial Sketch Curriculum
 
 This folder contains a step-by-step Arduino/ESP32 tutorial curriculum that
-breaks down the main [`anxius.ino`](../anxius.ino) project into beginner-friendly sub-sketches.
+breaks down the main [`anxious.ino`](../anxious.ino) project into beginner-friendly sub-sketches.
 
 ---
 
@@ -131,7 +131,7 @@ alongside the Serial Monitor output.
 
 ### 02 · Verbose macros
 
-**Concept:** Compile-time logging levels (`VERBOSE_LEVEL`) used in anxius.ino.
+**Concept:** Compile-time logging levels (`VERBOSE_LEVEL`) used in anxious.ino.
 
 **New language features introduced (see `// LEARN:` comments in v1):**
 - `#define` — preprocessor text substitution
@@ -160,13 +160,13 @@ alongside the Serial Monitor output.
 
 - `v1_simulated` – synthetic touch signal, shows algorithm without hardware.
 - `v2_touch_led` – real GPIO4 touch + built-in LED lights when touched.
-- `v3_full_pre_i2c` – adds rising-edge event counting as in anxius.ino.
+- `v3_full_pre_i2c` – adds rising-edge event counting as in anxious.ino.
 
 **Wiring (v2/v3):**
 - Wire or metal pad → **GPIO4** (touch electrode)
 - Built-in LED feedback on **GPIO2**
 
-> **Note:** GPIO4 (T0) is used to match anxius.ino.  The ESP32 supports
+> **Note:** GPIO4 (T0) is used to match anxious.ino.  The ESP32 supports
 > touch sensing on several GPIOs.  **Consult the ESP32 Technical Reference
 > Manual** (Table "Touch Sensor Channels") for the complete list before
 > changing the touch pin.
@@ -212,7 +212,7 @@ alongside the Serial Monitor output.
 - PCF8574 P0–P7 → 220 Ω resistor → LED anode → LED cathode → GND
 
 > **Active-low:** writing `LOW` to a PCF8574 pin turns the LED **on**.
-> This matches anxius.ino (`pcfWritePin(pin, true)` → `pcf.write(pin, LOW)`).
+> This matches anxious.ino (`pcfWritePin(pin, true)` → `pcf.write(pin, LOW)`).
 
 ---
 
@@ -297,7 +297,7 @@ alongside the Serial Monitor output.
 
 - `v1_simulated` – random-walk fake device count; no BLE hardware needed.
 - `v2_blocking_scan` – real BLE scan; **warning:** blocks loop() during scan.
-- `v3_task_scan` – FreeRTOS task-based scan (non-blocking); matches anxius.ino.
+- `v3_task_scan` – FreeRTOS task-based scan (non-blocking); matches anxious.ino.
 
 **Wiring:** just the ESP32 board (built-in BLE).
 
@@ -305,7 +305,7 @@ alongside the Serial Monitor output.
 
 ### 11 · Anxius-lite integrator
 
-**Concept:** Complete mini-version of anxius.ino with all subsystems.
+**Concept:** Complete mini-version of anxious.ino with all subsystems.
 
 - `v1_serial` – all logic in Serial; no hardware at all.
 - `v2_minimal` – touch + built-in LED + LEDC audio; no PCF8574 or BLE.
@@ -319,7 +319,7 @@ alongside the Serial Monitor output.
 
 **Concept:** Add sliced-PWM mode to the full integrator.
 
-- `v3_pwm_upgrade` – complete anxius.ino-like sketch with `ENABLE_PWM` toggle
+- `v3_pwm_upgrade` – complete anxious.ino-like sketch with `ENABLE_PWM` toggle
   and the full state-machine LED pattern engine (idle/excited/anxious/friendly).
   Toggle `ENABLE_PWM` at the top to switch between binary and sliced modes.
 

@@ -1,9 +1,9 @@
 // =============================================================================
 // 03_touch_smoothing – Variant 1: Simulated (no hardware required)
 // =============================================================================
-// Concept: How anxius.ino reads capacitive touch robustly.
+// Concept: How anxious.ino reads capacitive touch robustly.
 //
-// Real touch sensors are noisy.  anxius.ino uses two techniques:
+// Real touch sensors are noisy.  anxious.ino uses two techniques:
 //   1) Exponential smoothing – averages recent readings to reduce noise.
 //   2) Hysteresis latch – separate ON/OFF thresholds to stop rapid toggling.
 //
@@ -76,7 +76,7 @@ int simulateRaw(uint32_t now) {
   return BASELINE + (int)(random(-15, 15));
 }
 
-// Smoothing + hysteresis (same algorithm as anxius.ino)
+// Smoothing + hysteresis (same algorithm as anxious.ino)
 bool isTouched(int raw) {
   // ---- LEARN: Compound expression on one line ------------------------------
   // touchFiltered = (1.0f - SMOOTH_ALPHA) * touchFiltered + SMOOTH_ALPHA * raw

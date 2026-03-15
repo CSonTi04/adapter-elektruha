@@ -1,9 +1,9 @@
 // =============================================================================
 // 07_energy_buffer – Variant 1: Serial bars (no hardware)
 // =============================================================================
-// Concept: The 8-channel LED energy buffer from anxius.ino.
+// Concept: The 8-channel LED energy buffer from anxious.ino.
 //
-// Instead of working directly with LED brightness values, anxius.ino
+// Instead of working directly with LED brightness values, anxious.ino
 // accumulates "energy" in a float buffer[8].  Each call to pulseLed() adds
 // to a channel; decayEnergy() subtracts a little every frame.
 // This creates organic fading without any hardware PWM.
@@ -20,7 +20,7 @@ constexpr float    PULSE_AMP     = 0.6f;  // amplitude of each pulse
 constexpr float    TAIL_FRAC     = 0.45f; // neighbour bleed fraction
 constexpr uint32_t STEP_MS       = 120;   // chase step interval
 constexpr uint32_t PRINT_MS      = 100;
-// LED groups (matches anxius.ino)
+// LED groups (matches anxious.ino)
 constexpr int LEDA_FIRST = 0, LEDA_LAST = 3;
 constexpr int LEDB_FIRST = 4, LEDB_LAST = 7;
 // -----------------------------------------------------------------------------

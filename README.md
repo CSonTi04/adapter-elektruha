@@ -1,4 +1,4 @@
-# anxius.ino
+# anxious.ino
 
 ![Project build photo](project.jpg)
 
@@ -207,7 +207,7 @@ On each `loop()` iteration:
 
 ## Tuning quick-reference
 
-Most useful knobs in `anxius.ino`:
+Most useful knobs in `anxious.ino`:
 
 - `ENABLE_PWM`, `BINARY_THRESHOLD`, `BINARY_WRITE_EVERY_MS` (visual style)
 - `ENABLE_AUDIO`, `AUDIO_LEDC_RES_BITS` (audio behavior)
@@ -288,7 +288,7 @@ The repository ships with a two-job GitHub Actions workflow
 | Job | What it does |
 |-----|-------------|
 | **Unit tests** | Compiles and runs `tests/test_logic.cpp` with `g++` on `ubuntu-latest` — no hardware needed. |
-| **Arduino compile** | Installs Arduino CLI + ESP32 core + PCF8574 library, then compiles `anxius.ino` for `esp32:esp32:esp32`. |
+| **Arduino compile** | Installs Arduino CLI + ESP32 core + PCF8574 library, then compiles `anxious.ino` for `esp32:esp32:esp32`. |
 
 The pure-logic functions (`clamp01`, `chooseState`, `computeMaskBinary`) are
 re-exposed in `src/logic.h` — a standalone, Arduino-free C++ header — so they
@@ -320,8 +320,8 @@ arduino-cli core install esp32:esp32
 arduino-cli lib install "PCF8574"
 
 # Compile (copy to a named sketch folder to avoid multi-setup conflict)
-mkdir -p /tmp/anxius && cp anxius.ino /tmp/anxius/anxius.ino
-arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxius
+mkdir -p /tmp/anxious && cp anxious.ino /tmp/anxious/anxious.ino
+arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxious
 ```
 
 ---
@@ -344,5 +344,5 @@ See **[DISCLAIMER.md](DISCLAIMER.md)** for the full safety guide and liability s
 ## Notes
 
 - This workspace also includes `adapter-elektruha.ino`. Arduino compiles all `.ino` files in the sketch folder, so ensure there is only one active `setup()`/`loop()` pair when building.
-- For ESP32 core 3.x, `anxius.ino` uses the newer LEDC API style (`ledcAttachChannel`, `ledcWriteTone`, `ledcWrite`).
+- For ESP32 core 3.x, `anxious.ino` uses the newer LEDC API style (`ledcAttachChannel`, `ledcWriteTone`, `ledcWrite`).
 - `audioTick()` currently takes a raw `uint8_t` state argument and casts to `MoodState` internally to avoid Arduino auto-generated prototype ordering issues in `.ino` builds.

@@ -4,7 +4,7 @@
 // Concept: Binary vs sliced-PWM mode on all 8 PCF8574 outputs.
 //
 // This mirrors the computeMask() / computeMaskBinary() output stage from
-// anxius.ino.  A brightness ramp runs on all 8 channels simultaneously
+// anxious.ino.  A brightness ramp runs on all 8 channels simultaneously
 // so you can see the visual difference between both modes on real LEDs.
 //
 // PREREQUISITE: Run 04A v3 first to confirm PCF8574 at 0x20.

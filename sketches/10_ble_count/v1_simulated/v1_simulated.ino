@@ -1,7 +1,7 @@
 // =============================================================================
 // 10_ble_count – Variant 1: Simulated random walk (no hardware)
 // =============================================================================
-// Concept: How BLE device count drives arousal in anxius.ino.
+// Concept: How BLE device count drives arousal in anxious.ino.
 //
 // In the full project, a background FreeRTOS task periodically scans for
 // nearby BLE devices and updates a shared counter.  The main loop reads that
@@ -43,11 +43,11 @@ void loop() {
     if (fakeDeviceCount < 0)            fakeDeviceCount = 0;
     if (fakeDeviceCount > MAX_DEVICES)  fakeDeviceCount = MAX_DEVICES;
 
-    // Arousal update (same formula as anxius.ino)
+    // Arousal update (same formula as anxious.ino)
     arousal = clamp01(arousal + 0.1f * clamp01((float)fakeDeviceCount / 10.0f));
   }
 
-  // Natural arousal decay (same rate as anxius.ino tickEmotions)
+  // Natural arousal decay (same rate as anxious.ino tickEmotions)
   static uint32_t lastDecayMs = 0;
   if (now - lastDecayMs >= 50) {
     float dt = (now - lastDecayMs) / 1000.0f; lastDecayMs = now;

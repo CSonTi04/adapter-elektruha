@@ -3,11 +3,11 @@
 // =============================================================================
 // Concept: Same event scheduler but outputting real tones via ESP32 LEDC.
 //
-// anxius.ino uses ESP32 LEDC (hardware PWM) to generate tones for the LM386
+// anxious.ino uses ESP32 LEDC (hardware PWM) to generate tones for the LM386
 // audio amplifier.  ledcWriteTone() sets the frequency; ledcWrite() sets the
 // duty (volume).
 //
-// This sketch uses GPIO5 (AUDIO_PIN) to match anxius.ino.  You can connect
+// This sketch uses GPIO5 (AUDIO_PIN) to match anxious.ino.  You can connect
 // a small speaker or piezo directly to GPIO5 + GND for basic testing,
 // or route through an LM386 module for proper amplification.
 //
@@ -19,7 +19,7 @@
 // =============================================================================
 
 // ---- Tuning knobs -----------------------------------------------------------
-constexpr int  AUDIO_PIN          = 5;    // must match anxius.ino
+constexpr int  AUDIO_PIN          = 5;    // must match anxious.ino
 constexpr int  AUDIO_LEDC_CH      = 2;
 constexpr int  AUDIO_LEDC_RES     = 8;    // 8-bit duty (0..255)
 constexpr float AUDIO_VOLUME_SCALE = 0.35f; // global volume trim

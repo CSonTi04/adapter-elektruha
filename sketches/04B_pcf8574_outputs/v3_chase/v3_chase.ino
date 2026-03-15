@@ -6,7 +6,7 @@
 // PREREQUISITE: Run 04A v3 (I2C scanner) first and confirm that 0x20 appears
 // in the scan results.  Only then wire LEDs and upload this sketch.
 //
-// Active-low wiring (matches anxius.ino):
+// Active-low wiring (matches anxious.ino):
 //   Each PCF8574 pin → resistor (~220Ω) → LED anode → LED cathode → GND
 //   Writing LOW  to the pin  = current flows  = LED ON
 //   Writing HIGH to the pin  = no current     = LED OFF

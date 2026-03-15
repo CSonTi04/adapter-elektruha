@@ -3,9 +3,9 @@
 // =============================================================================
 // Concept: Adds the time-sliced PWM output mode to the full integrator from
 // sketch 11 v3.  Toggle ENABLE_PWM to switch between binary ON/OFF and
-// smooth time-sliced brightness, matching anxius.ino's dual-mode output.
+// smooth time-sliced brightness, matching anxious.ino's dual-mode output.
 //
-// The full LED pattern engine from anxius.ino (idle/excited/anxious/friendly
+// The full LED pattern engine from anxious.ino (idle/excited/anxious/friendly
 // state machines) is also included here to complete the curriculum.
 //
 // ENABLE_PWM = false → computeMaskBinary()  – clear ON/OFF (default)
@@ -59,7 +59,7 @@ constexpr uint32_t LOG_MS            = 1000;
 constexpr uint32_t PWM_PERIOD_US = 4000;
 constexpr uint8_t  PWM_LEVELS    = 16;
 constexpr uint32_t PWM_SLICE_US  = PWM_PERIOD_US / PWM_LEVELS;
-// LED groups (Group A = impulse, Group B = response, mirrors anxius.ino)
+// LED groups (Group A = impulse, Group B = response, mirrors anxious.ino)
 constexpr int LEDA_FIRST = 0, LEDA_LAST = 3;
 constexpr int LEDB_FIRST = 4, LEDB_LAST = 7;
 // -----------------------------------------------------------------------------
@@ -185,7 +185,7 @@ void copyEnergyToTarget(float baseFloor = 0.0f) {
   for (int i = 0; i < 8; i++) ledTarget[i] = clamp01f(baseFloor + ledEnergy[i]);
 }
 
-// ---- Pattern state machines (mirrors anxius.ino) ----------------------------
+// ---- Pattern state machines (mirrors anxious.ino) ----------------------------
 static uint32_t idleNextStepMs = 0; static int idlePhase = 0;
 static int idleAIdx = LEDA_FIRST; static int idleBIdx = LEDB_LAST;
 

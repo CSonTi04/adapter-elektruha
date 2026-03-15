@@ -2,11 +2,11 @@
 // 05_emotions_decay – Variant 3: Full pre-I2C
 // =============================================================================
 // Concept: Complete emotional model (arousal/affection/anxiety) with touch
-// input.  Mirrors anxius.ino exactly but without I2C / PCF8574 outputs.
+// input.  Mirrors anxious.ino exactly but without I2C / PCF8574 outputs.
 // The built-in LED brightness is simulated via Serial bars.
 //
 // IMPORTANT – Touch-capable pins on ESP32:
-//   GPIO4 (T0) matches anxius.ino.  See ESP32 Technical Reference Manual
+//   GPIO4 (T0) matches anxious.ino.  See ESP32 Technical Reference Manual
 //   for the full list of touch-capable GPIOs.
 //
 // Wiring: wire/metal pad → GPIO4;  built-in LED on GPIO2.

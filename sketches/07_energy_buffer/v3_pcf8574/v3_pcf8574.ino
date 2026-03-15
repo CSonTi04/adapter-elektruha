@@ -2,7 +2,7 @@
 // 07_energy_buffer – Variant 3: Energy → PCF8574 binary output
 // =============================================================================
 // Concept: Energy buffer flushed to PCF8574 as binary ON/OFF.
-// This is the binary output path from anxius.ino applied to a simple
+// This is the binary output path from anxious.ino applied to a simple
 // chase-and-decay pattern.
 //
 // PREREQUISITE: Run 04A v3 first to confirm PCF8574 at 0x20.

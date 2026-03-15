@@ -1,7 +1,7 @@
 // =============================================================================
 // 05_emotions_decay – Variant 1: Simulated (Serial only)
 // =============================================================================
-// Concept: The emotional model from anxius.ino running in pure software.
+// Concept: The emotional model from anxious.ino running in pure software.
 //
 // Three continuous values (0..1):
 //   arousal   – rises with external stimulation, decays over time.

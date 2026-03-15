@@ -11,7 +11,7 @@
 //   ** Always check your specific ESP32 board's pinout and the official
 //      Espressif ESP32 Technical Reference Manual before wiring. **
 //
-// This sketch defaults to GPIO4 (T0) to match anxius.ino.
+// This sketch defaults to GPIO4 (T0) to match anxious.ino.
 // Connect a wire or small metal pad to GPIO4 as a touch electrode.
 //
 // Wiring:
@@ -21,7 +21,7 @@
 
 // ---- Tuning knobs -----------------------------------------------------------
 // See the note above about touch-capable pins before changing TOUCH_PIN.
-constexpr int   TOUCH_PIN       = 4;    // GPIO4 (T0) – matches anxius.ino
+constexpr int   TOUCH_PIN       = 4;    // GPIO4 (T0) – matches anxious.ino
 constexpr int   LED_PIN         = 2;    // built-in LED
 constexpr float TOUCH_ON_RATIO  = 0.85f;
 constexpr float TOUCH_OFF_RATIO = 0.90f;
@@ -34,7 +34,7 @@ float touchFiltered = 0.0f;
 bool  touchLatched  = false;
 uint32_t lastPrintMs = 0;
 
-// Calibrate baseline on startup (same method as anxius.ino)
+// Calibrate baseline on startup (same method as anxious.ino)
 void calibrateTouch() {
   delay(400);
   long sum = 0;

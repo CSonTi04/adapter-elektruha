@@ -1,7 +1,7 @@
 // =============================================================================
 // 09_audio_events – Variant 3: Full LM386 LEDC with volume scale
 // =============================================================================
-// Concept: Full audio event scheduler matching anxius.ino exactly.
+// Concept: Full audio event scheduler matching anxious.ino exactly.
 // Includes the complete per-state event profiles (idle, excited, anxious,
 // friendly), the global volume scale trim, and micro-drift for organic feel.
 //
@@ -22,7 +22,7 @@
 // =============================================================================
 
 // ---- Tuning knobs -----------------------------------------------------------
-constexpr int     AUDIO_PIN         = 5;      // matches anxius.ino
+constexpr int     AUDIO_PIN         = 5;      // matches anxious.ino
 constexpr int     AUDIO_LEDC_CH     = 2;
 constexpr int     AUDIO_LEDC_RES    = 8;      // 8-bit duty
 constexpr float   AUDIO_VOLUME_SCALE = 0.35f; // global trim (0..1)

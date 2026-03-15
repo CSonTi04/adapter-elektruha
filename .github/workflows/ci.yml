@@ -31,10 +31,10 @@ jobs:
         run: /tmp/test_runner
 
   # ---------------------------------------------------------------------------
-  # Job 2: compile anxius.ino for ESP32 with Arduino CLI
+  # Job 2: compile anxious.ino for ESP32 with Arduino CLI
   # ---------------------------------------------------------------------------
   arduino-compile:
-    name: Compile anxius.ino (ESP32)
+    name: Compile anxious.ino (ESP32)
     runs-on: ubuntu-latest
 
     steps:
@@ -67,9 +67,9 @@ jobs:
       - name: Compile sketch
         run: |
           # Arduino requires the sketch directory to be named after the sketch.
-          # Copy anxius.ino and its src/ dependency so the other .ino in the
+          # Copy anxious.ino and its src/ dependency so the other .ino in the
           # repo root does not create a duplicate setup()/loop() conflict.
-          mkdir -p /tmp/anxius/src
-          cp anxius.ino /tmp/anxius/anxius.ino
-          cp src/logic.h /tmp/anxius/src/logic.h
-          arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxius
+          mkdir -p /tmp/anxious/src
+          cp anxious.ino /tmp/anxious/anxious.ino
+          cp src/logic.h /tmp/anxious/src/logic.h
+          arduino-cli compile --fqbn esp32:esp32:esp32 /tmp/anxious

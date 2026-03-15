@@ -5,7 +5,7 @@
 // Touch the electrode to apply affection (LED on = touched).
 //
 // IMPORTANT – Touch-capable pins on ESP32:
-//   GPIO4 (T0) is used here to match anxius.ino.  Consult the ESP32
+//   GPIO4 (T0) is used here to match anxious.ino.  Consult the ESP32
 //   Technical Reference Manual for the complete list of touch-capable GPIOs
 //   before changing TOUCH_PIN.
 //

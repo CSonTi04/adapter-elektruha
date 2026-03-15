@@ -1,7 +1,7 @@
 // =============================================================================
 // 11_anxius_lite – Variant 2: Minimal integrator (no PCF8574)
 // =============================================================================
-// Concept: Full anxius.ino integration minus PCF8574 and BLE.
+// Concept: Full anxious.ino integration minus PCF8574 and BLE.
 // Uses:
 //   - Real capacitive touch (GPIO4) for emotional input
 //   - Built-in LED for visual state feedback

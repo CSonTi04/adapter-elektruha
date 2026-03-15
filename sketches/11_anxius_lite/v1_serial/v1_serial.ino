@@ -1,7 +1,7 @@
 // =============================================================================
 // 11_anxius_lite – Variant 1: Serial-only integrator
 // =============================================================================
-// Concept: A minimal but complete version of anxius.ino running entirely in
+// Concept: A minimal but complete version of anxious.ino running entirely in
 // Serial – no hardware required.
 //
 // All major subsystems are present:

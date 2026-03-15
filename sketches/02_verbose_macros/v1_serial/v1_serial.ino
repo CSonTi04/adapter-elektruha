@@ -2,7 +2,7 @@
 // 02_verbose_macros – Variant 1: Serial-only (no hardware required)
 // =============================================================================
 // Concept: Conditional compile-time logging levels.
-// anxius.ino uses VERBOSE_LEVEL macros so you can control how much Serial
+// anxious.ino uses VERBOSE_LEVEL macros so you can control how much Serial
 // output you see without any runtime overhead.
 //
 // This sketch lets you experiment with all four levels and see exactly what
@@ -22,7 +22,7 @@
 // numbers 0, 1, 2, 3.  This makes the code readable: you see
 // "VERBOSE_EMOTION" and instantly understand it, rather than wondering
 // what the magic number "2" means.
-// ---- Verbosity levels (same names as anxius.ino) ----------------------------
+// ---- Verbosity levels (same names as anxious.ino) ----------------------------
 #define VERBOSE_NONE     0
 #define VERBOSE_STATE    1
 #define VERBOSE_EMOTION  2

@@ -1,15 +1,17 @@
 // src/logic.h
-// Pure-logic helpers extracted from anxius.ino.
+// Pure-logic helpers extracted from anxious.ino.
 //
 // These implementations mirror the sketch exactly so that host-side unit tests
 // can validate the business logic without Arduino or ESP32 headers.
-// The original anxius.ino is unchanged and does not include this file.
+//
+// NOTE: This header is now included by anxious.ino. The sketch remains the
+// source of truth, and this file mirrors its logic for testability.
 
 #pragma once
 
 #include <cstdint>
 
-// ---- Mood state (mirrors anxius.ino enum) ----
+// ---- Mood state (mirrors anxious.ino enum) ----
 
 enum class MoodState : uint8_t {
   Idle,
@@ -18,7 +20,7 @@ enum class MoodState : uint8_t {
   Friendly
 };
 
-// ---- Emotional model (mirrors anxius.ino struct) ----
+// ---- Emotional model (mirrors anxious.ino struct) ----
 
 struct Emotion {
   float    arousal         = 0.0f;
@@ -29,14 +31,14 @@ struct Emotion {
 };
 
 // ---- clamp01 ----
-// Clamp x to [0, 1].  Mirrors the free function in anxius.ino.
+// Clamp x to [0, 1].  Mirrors the free function in anxious.ino.
 
 inline float clamp01(float x) {
   return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x);
 }
 
 // ---- chooseState ----
-// Priority-based mood selector.  Mirrors chooseState() in anxius.ino exactly:
+// Priority-based mood selector.  Mirrors chooseState() in anxious.ino exactly:
 //   1. Friendly  — within 1500 ms of last touch (highest priority)
 //   2. Anxious   — anxiety > 0.65
 //   3. Excited   — arousal  > 0.55
